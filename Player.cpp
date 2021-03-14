@@ -8,6 +8,7 @@
 #include <utility>
 #include <string>
 
+
 Player::Player(std::string name) : _name(std::move(name)), _lastOrder(0)
 {
 }
@@ -68,7 +69,9 @@ void Player::updatePosition(const std::string& orderId, Price price)
             break;
         }
     }
-    std::cout << "Player: " << _name << " update position with order: " << orderId;
+    std::stringstream result;
+    result << "Player: " << _name << " update position with order: " << orderId;
+    _messages.push_back(result.str());
 }
 
 
@@ -86,4 +89,16 @@ std::stringstream Player::stats(Quote quote) const
     result << "Player: " << _name << "\n" << "Position: " << position << "\n" << "PnL: " << pnl << "\n";
     return result;
 
+}
+
+
+const std::vector<std::string>& Player::readMessages() const
+{
+    return _messages;
+}
+
+
+void Player::eraseMessages()
+{
+    _messages.erase(_messages.begin(), _messages.end());
 }

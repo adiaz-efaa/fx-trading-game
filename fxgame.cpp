@@ -26,7 +26,8 @@ int main()
     std::string prompt = "fxgame> ";
 
     // Start price simulation
-    Simulator simulator{.01, .005, .12, 10};
+    int num_seconds = 15;
+    Simulator simulator{.01, .005, .12, num_seconds};
     auto priceSource = std::make_shared<PriceSource>(std::move(simulator));
     std::thread priceFeed([&](){
         priceSource->startPriceSimulation();
@@ -43,9 +44,6 @@ int main()
     });
     orderLoop.detach();
 
-    std::cout << "Order loop id: " << orderLoop.get_id() << "\n";
-    std::cout << "Price source id: " << priceFeed.get_id() << "\n";
-
     // Create and unordered_map of commands
     std::unordered_map<std::string, aux::CommandEnum> commandNumbers;
     commandNumbers.insert(std::make_pair("new_player", aux::CommandEnum::newPlayer));
@@ -58,6 +56,7 @@ int main()
     commandNumbers.insert(std::make_pair("all_sell_orders", aux::CommandEnum::allSellOrders));
     commandNumbers.insert(std::make_pair("position", aux::CommandEnum::position));
     commandNumbers.insert(std::make_pair("msg", aux::CommandEnum::message));
+    commandNumbers.insert(std::make_pair("none", aux::CommandEnum::none));
     commandNumbers.insert(std::make_pair("quit", aux::CommandEnum::quit));
 
     std::string cmd;
@@ -68,9 +67,9 @@ int main()
         std::lock_guard<std::mutex> lock(_outMutex);
         std::cout << prompt;
         _outMutex.unlock();
-        std::future<std::string> futureString = std::async(std::launch::async, getCommand);
-        futureString.wait();
-        cmd = futureString.get();
+        std::future<std::string> futureCommand = std::async(std::launch::async, getCommand);
+        futureCommand.wait();
+        cmd = futureCommand.get();
         auto args = aux::splitCommand(cmd);
         auto iter = commandNumbers.find(args[0] );
         if (iter != commandNumbers.end())
@@ -169,10 +168,12 @@ int main()
                 case aux::CommandEnum::position:
                     try
                     {
+                        std::lock_guard<std::mutex> lockGuard(_outMutex);
                         std::cout << players.at(args[1]).stats(priceSource->getLastQuote()).str();
                     }
                     catch (...)
                     {
+                        std::lock_guard<std::mutex> lockGuard(_outMutex);
                         std::cout << "Bad command. Correct usage is:\n";
                         std::cout << "position <player_name>" << std::endl;
                     }
@@ -181,28 +182,33 @@ int main()
 
                 case aux::CommandEnum::message:
                     {
-                        std::stringstream out;
-                        for (auto it = args.begin() + 1; it != args.end();  ++it )
+                        std::lock_guard<std::mutex> lockGuard(_outMutex);
+                        auto q = priceSource->getLastQuote();
+                        std::cout << "Bid: " << q.bid << ", " << "Ask: " << q.ask << std::endl;
+                        for (auto& player : players)
                         {
-                            out << *it;
+                            auto messages = player.second.readMessages();
+                            if (!messages.empty())
+                            {
+                                for (const auto& message : messages)
+                                {
+                                    std::cout << message << "\n";
+                                }
+                                player.second.eraseMessages();
+                            }
                         }
-                        auto outString = out.str();
-                        if (outString.size() <= 1)
-                        {
-                            // hgggg
-                            out << "No messages";
-                            std::cout << out.str() << std::endl;
-                            break;
-                        }
-                        std::cout << outString << std::endl;
                         break;
-
                     }
 
-                case aux::CommandEnum::quit:
+                case aux::CommandEnum::none:
                 {
-                    stop = true;
+                    break;
                 }
+
+                case aux::CommandEnum::quit:
+                    {
+                        stop = true;
+                    }
             }
         }
         else

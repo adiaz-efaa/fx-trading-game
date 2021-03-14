@@ -51,7 +51,6 @@ Quote PriceSource::_simulatePrice()
 void PriceSource::_storePrice(Quote quote)
 {
     _lastQuote = quote;
-    // std::cout << "Bid: " << _lastQuote.bid << ", Ask: " << _lastQuote.ask << " has been stored.\n";
 }
 
 

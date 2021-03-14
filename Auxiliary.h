@@ -30,6 +30,7 @@ namespace aux
         allSellOrders,
         position,
         message,
+        none,
         quit
     };
 

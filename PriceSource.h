@@ -60,16 +60,15 @@ class PriceSource
 public:
     PriceSource(Simulator&& simulator);
     virtual ~PriceSource();
-
     void startPriceSimulation();
     Quote getLastQuote();
     void stopPriceSimulation();
+
 
 private:
     Quote _simulatePrice();
     void _storePrice(Quote quote);
     Simulator _simulator;
-
     Quote _lastQuote{};
     bool _stopPriceSimulation{false};
 };
