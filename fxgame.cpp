@@ -3,29 +3,31 @@
 //
 
 #include <unordered_map>
-#include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <thread>
-#include <chrono>
 
 #include "Auxiliary.h"
 #include "OrderManager.h"
 #include "PriceSource.h"
 #include "Player.h"
 
-// TODO: printer class with global lock on cout
+std::string getCommand()
+{
+    std::string input;
+    std::getline(std::cin, input);
+    return input;
+}
+
 int main()
 {
     // Create prompt
     std::string prompt = "fxgame> ";
 
-    // Create and start price feed
-    std::filesystem::path path{".files/"};
-
     // Start price simulation
     Simulator simulator{.01, .005, .12, 10};
-    auto priceSource = std::make_shared<PriceSource>(path, std::move(simulator));
+    auto priceSource = std::make_shared<PriceSource>(std::move(simulator));
     std::thread priceFeed([&](){
         priceSource->startPriceSimulation();
     });
@@ -55,6 +57,7 @@ int main()
     commandNumbers.insert(std::make_pair("all_buy_orders", aux::CommandEnum::allBuyOrders));
     commandNumbers.insert(std::make_pair("all_sell_orders", aux::CommandEnum::allSellOrders));
     commandNumbers.insert(std::make_pair("position", aux::CommandEnum::position));
+    commandNumbers.insert(std::make_pair("msg", aux::CommandEnum::message));
     commandNumbers.insert(std::make_pair("quit", aux::CommandEnum::quit));
 
     std::string cmd;
@@ -65,7 +68,9 @@ int main()
         std::lock_guard<std::mutex> lock(_outMutex);
         std::cout << prompt;
         _outMutex.unlock();
-        std::getline(std::cin, cmd);
+        std::future<std::string> futureString = std::async(std::launch::async, getCommand);
+        futureString.wait();
+        cmd = futureString.get();
         auto args = aux::splitCommand(cmd);
         auto iter = commandNumbers.find(args[0] );
         if (iter != commandNumbers.end())
@@ -173,6 +178,26 @@ int main()
                     }
 
                     break;
+
+                case aux::CommandEnum::message:
+                    {
+                        std::stringstream out;
+                        for (auto it = args.begin() + 1; it != args.end();  ++it )
+                        {
+                            out << *it;
+                        }
+                        auto outString = out.str();
+                        if (outString.size() <= 1)
+                        {
+                            // hgggg
+                            out << "No messages";
+                            std::cout << out.str() << std::endl;
+                            break;
+                        }
+                        std::cout << outString << std::endl;
+                        break;
+
+                    }
 
                 case aux::CommandEnum::quit:
                 {

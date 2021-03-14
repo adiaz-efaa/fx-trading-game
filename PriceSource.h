@@ -5,7 +5,6 @@
 #ifndef FX_TRADING_GAME_PRICESOURCE_H
 #define FX_TRADING_GAME_PRICESOURCE_H
 
-#include <filesystem>
 #include <random>
 
 using Price = double;
@@ -59,7 +58,7 @@ private:
 class PriceSource
 {
 public:
-    PriceSource(std::filesystem::path pathToFiles, Simulator&& simulator);
+    PriceSource(Simulator&& simulator);
     virtual ~PriceSource();
 
     void startPriceSimulation();
@@ -71,7 +70,6 @@ private:
     void _storePrice(Quote quote);
     Simulator _simulator;
 
-    std::filesystem::path _pathToFiles;
     Quote _lastQuote{};
     bool _stopPriceSimulation{false};
 };

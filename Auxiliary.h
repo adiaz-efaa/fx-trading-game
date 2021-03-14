@@ -29,6 +29,7 @@ namespace aux
         allBuyOrders,
         allSellOrders,
         position,
+        message,
         quit
     };
 

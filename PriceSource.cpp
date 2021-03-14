@@ -31,8 +31,7 @@ int Simulator::num_seconds()
 }
 
 
-PriceSource::PriceSource(std::filesystem::path  pathToFiles, Simulator&& simulator) :
-        _pathToFiles(std::move(pathToFiles)), _simulator(std::move(simulator))
+PriceSource::PriceSource(Simulator&& simulator) : _simulator(std::move(simulator))
 {
     _lastQuote.bid = 699.95;
     _lastQuote.ask = 700.05;
