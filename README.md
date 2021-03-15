@@ -10,6 +10,8 @@ Text based game that simulates the mechanics of FX trading.
 
 ## Installing
 
+**PLEASE NOTE:** fx-trading-game needs Ubuntu 18.04 to compile and run properly. The program has also been tested on Mac OS 11.2.3.
+
 Clone the repo: `git clone https://github.com/adiaz-efaa/fx-trading-game.git`
 
 Once cloned, cd into the directory: `cd fx-trading-game`
@@ -53,8 +55,40 @@ The price simulator and the order manager will immediately start running.
 - `all_sell_orders`: all sell orders issued by all the players will be displayed.
 - `position`: usage is `fxgame> position udacity`. The position and PnL of player `udacity` will be displayed.
 
+## Project Structure
 
+- `fxgame.cpp`: entry point of the program
+- `class Order`: the class is implemented is separate .h and .cpp files. This is an abstract class that represents an Order issued by a player. There are are 2 classes derived from Order, BuyOrder and SellOrder which represent a buy and a sell order respectively. Both classes override operator< which is purely virtual in their parent class.
+- `class Player`: the class is implemented is separate .h and .cpp files. This class represents the game's players. It keeps track of the orders issued by the player and calculates it's position and PnL.
+- `class PriceSource`: the class is implemented is separate .h and .cpp files. With the help of class `Simulator`, this class is in charge of simulating the market prices against which players can place buy or sell orders. Since it is closely related to `PriceSource` class `Simulator` is implemented in these same files. This class implements a very small version of the dynamics of a Black-Scholes-Merton model specialized for FX rates.
+- `class OrderManager`: the class is implemented is separate .h and .cpp files. This class manages orders issued by the players. As soon as order can be fulfilled (depending on it's price and simulated price), the player that issued the order is notified.
+- `Auxiliary.h` and `Auxiliary.cpp`: some helper functions and objects. They are all gathered under `namespace` aux.
 
+## Loops, Functions, I/O
 
+- 'fxgame.cpp' implements a `while loop` (line 65) the games' loop.
+- In 'namespace aux', file `Auxiliary.h` lines 20, 39 and 41 3 hekper functions are declared (they are implemented) in `Auxiliary.cpp`.
+- No input is read from files. The user interacts with the game through commands entered at the game's prompt. See for instance `fxgame.cpp` lines 77 and onwards.
 
+## Object Oriented Programming
 
+- The program is organized into classes. See **Project Structure**.
+- All class members are explicitly declared private, public or protected. See for example class `Order` in file `Order.h` line 18.
+- When appropriate class constructors utilize initialization lists. See for example `OrderManager.cpp` line 10 (constructor for class `OrderManeger`).
+- Function `displayOrders` is overloaded. See `Auxiliary.h` lines 39 and 41.
+
+## Memory Management
+
+- References:
+  - the parameter `std::unordered_map<std::string, Player>& players` is received by the constructor of `OrderManager`, see `OrderManager.cpp` line 11.
+  - method `[[nodiscard]] const std::unordered_map<std::string, std::shared_ptr<Order>>& getOrders() const;` of class `Player` returns a `const &`. See `Player.h` line 28.
+- There are no unmanaged dynamic memory allocations (raw pointers).
+- See use of `shared_ptr` in `fxgame.cpp` lines 31 and 41.
+- See the use of `unique_ptr` in `PriceSource.h` line 52.
+
+## Concurrency
+
+- The project uses 3 threads, main thread, thread 2 where `PriceSource` runs and thread 3 where `OrderManager` runs. See `fxgame.cpp` lines 32 and 42.
+- A future is used to wait for user input in main loop. See `fxgame.cpp` line 69.
+- A mutex is used in main loop to protect `std::cout`. See `fxgame.cpp` lines 68 and 81 for example.
+- Class `OrderManager` uses a condition variable to regulate access to orders in methods `receive` and `_process_orders`. See `OrderManager.cpp` line 26.

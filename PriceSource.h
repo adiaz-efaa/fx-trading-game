@@ -14,20 +14,11 @@ struct Quote
 {
     Price bid;
     Price ask;
-    void moveBy(float amount)
-    {
-        bid += amount;
-        ask += amount;
-    }
-
-
     bool operator==(const Quote& rhs) const
     {
         return bid == rhs.bid &&
                ask == rhs.ask;
     }
-
-
     bool operator!=(const Quote& rhs) const
     {
         return !(rhs == *this);
@@ -58,17 +49,17 @@ private:
 class PriceSource
 {
 public:
-    PriceSource(Simulator&& simulator);
-    virtual ~PriceSource();
+    explicit PriceSource(std::unique_ptr<Simulator> simulator);
     void startPriceSimulation();
     Quote getLastQuote();
     void stopPriceSimulation();
+    virtual ~PriceSource();
 
 
 private:
     Quote _simulatePrice();
     void _storePrice(Quote quote);
-    Simulator _simulator;
+    std::unique_ptr<Simulator> _simulator;
     Quote _lastQuote{};
     bool _stopPriceSimulation{false};
 };

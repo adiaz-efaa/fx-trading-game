@@ -31,7 +31,7 @@ int Simulator::num_seconds()
 }
 
 
-PriceSource::PriceSource(Simulator&& simulator) : _simulator(std::move(simulator))
+PriceSource::PriceSource(std::unique_ptr<Simulator> simulator) : _simulator(std::move(simulator))
 {
     _lastQuote.bid = 699.95;
     _lastQuote.ask = 700.05;
@@ -41,7 +41,7 @@ PriceSource::PriceSource(Simulator&& simulator) : _simulator(std::move(simulator
 Quote PriceSource::_simulatePrice()
 {
     auto mid = (_lastQuote.bid + _lastQuote.ask) / 2.0;
-    mid = _simulator.nextPrice(mid);
+    mid = _simulator->nextPrice(mid);
     _lastQuote.bid = mid - .05;
     _lastQuote.ask = mid + .05;
     return _lastQuote;
@@ -59,7 +59,7 @@ void PriceSource::startPriceSimulation()
     _stopPriceSimulation = false;
     while (!_stopPriceSimulation)
     {
-        std::this_thread::sleep_for(std::chrono::seconds(_simulator.num_seconds()));
+        std::this_thread::sleep_for(std::chrono::seconds(_simulator->num_seconds()));
         _storePrice(_simulatePrice());
     }
 }

@@ -28,7 +28,7 @@ public:
     [[nodiscard]] const std::unordered_map<std::string, std::shared_ptr<Order>>& getOrders() const;
     void updatePosition(const std::string& orderId, Price price);
     [[nodiscard]] std::stringstream stats(Quote quote) const;
-    const std::vector<std::string>& readMessages() const;
+    [[nodiscard]] const std::vector<std::string>& readMessages() const;
     void eraseMessages();
 
 

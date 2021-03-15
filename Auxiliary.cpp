@@ -15,14 +15,6 @@ namespace aux
         return result;
     }
 
-    std::string timePointAsString(const std::chrono::time_point<std::chrono::system_clock>& tp)
-    {
-        std::time_t t = std::chrono::system_clock::to_time_t(tp);
-        std::string ts = std::ctime(&t);
-        ts.resize(ts.size()-1);
-        return ts;
-    }
-
 
     void displayOrders(const std::vector<std::shared_ptr<Order>>& orders)
     {

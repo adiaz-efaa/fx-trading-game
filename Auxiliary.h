@@ -30,11 +30,8 @@ namespace aux
         allSellOrders,
         position,
         message,
-        none,
         quit
     };
-
-    std::string timePointAsString(const std::chrono::time_point<std::chrono::system_clock>& tp);
 
     void displayOrders(const std::vector<std::shared_ptr<Order>>& orders);
 

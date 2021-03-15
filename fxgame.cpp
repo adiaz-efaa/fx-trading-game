@@ -27,7 +27,7 @@ int main()
 
     // Start price simulation
     int num_seconds = 15;
-    Simulator simulator{.01, .005, .12, num_seconds};
+    auto simulator = std::make_unique<Simulator>(.01, .005, .12, num_seconds);
     auto priceSource = std::make_shared<PriceSource>(std::move(simulator));
     std::thread priceFeed([&](){
         priceSource->startPriceSimulation();
@@ -56,7 +56,6 @@ int main()
     commandNumbers.insert(std::make_pair("all_sell_orders", aux::CommandEnum::allSellOrders));
     commandNumbers.insert(std::make_pair("position", aux::CommandEnum::position));
     commandNumbers.insert(std::make_pair("msg", aux::CommandEnum::message));
-    commandNumbers.insert(std::make_pair("none", aux::CommandEnum::none));
     commandNumbers.insert(std::make_pair("quit", aux::CommandEnum::quit));
 
     std::string cmd;
@@ -81,7 +80,7 @@ int main()
                     {
                         std::lock_guard<std::mutex> lockGuard(_outMutex);
                         players.emplace(args[1], args[1]);
-                        std::cout << "Player: \"" << args[1] << "\" successfully added.\n";
+                        std::cout << "Player \"" << args[1] << "\" successfully added.\n";
                     }
                     else
                     {
@@ -91,79 +90,79 @@ int main()
                     break;
 
                 case aux::CommandEnum::getQuote:
-                {
-                    auto q = priceSource->getLastQuote();
-                    std::lock_guard<std::mutex> lockGuard(_outMutex);
-                    std::cout << "Bid: " << q.bid << ", " << "Ask: " << q.ask << "\n";
-                    break;
-                }
+                    {
+                        auto q = priceSource->getLastQuote();
+                        std::lock_guard<std::mutex> lockGuard(_outMutex);
+                        std::cout << "Bid: " << q.bid << ", " << "Ask: " << q.ask << "\n";
+                        break;
+                    }
 
                 case aux::CommandEnum::newOrder:
-                {
-                    auto orderType1 = (args[2] == "b") ? OrderType::buy : OrderType::sell;
-                    try
                     {
-                        auto newOrder = (players.at(args[1])).newOrder(
+                        auto orderType1 = (args[2] == "b") ? OrderType::buy : OrderType::sell;
+                        try
+                        {
+                            auto newOrder = (players.at(args[1])).newOrder(
                                 orderType1, stod(args[3]), stod(args[4]));
-                        orderManager->receive(newOrder);
+                            orderManager->receive(newOrder);
+                        }
+                        catch (...)
+                        {
+                            std::lock_guard<std::mutex> lockGuard(_outMutex);
+                            std::cout << "Bad command. Correct usage is:\n";
+                            std::cout << "new_order <player_name> <b or s> <amount> <price>" << std::endl;
+                        }
+                        break;
                     }
-                    catch (...)
-                    {
-                        std::lock_guard<std::mutex> lockGuard(_outMutex);
-                        std::cout << "Bad command. Correct usage is:\n";
-                        std::cout << "new_order <player_name> <b or s> <amount> <price>" << std::endl;
-                    }
-                    break;
-                }
 
                 case aux::CommandEnum::lastOrder:
-                {
-                    try
                     {
-                        std::lock_guard<std::mutex> lockGuard(_outMutex);
-                        std::cout << "Last order number: " << (players.at(args[1])).getLastOrderNumber() << "\n";
+                        try
+                        {
+                            std::lock_guard<std::mutex> lockGuard(_outMutex);
+                            std::cout << "Last order number: " << (players.at(args[1])).getLastOrderNumber() << "\n";
+                        }
+                        catch (...)
+                        {
+                            std::lock_guard<std::mutex> lockGuard(_outMutex);
+                            std::cout << "Bad command. Correct usage is:\n";
+                            std::cout << "last_order <player_name>" << std::endl;
+                        }
+                        break;
                     }
-                    catch (...)
-                    {
-                        std::lock_guard<std::mutex> lockGuard(_outMutex);
-                        std::cout << "Bad command. Correct usage is:\n";
-                        std::cout << "last_order <player_name>" << std::endl;
-                    }
-                    break;
-                }
 
                 case aux::CommandEnum::ordersFrom:
-                {
-                    try
                     {
-                        std::lock_guard<std::mutex> lockGuard(_outMutex);
-                        auto orders = players.at(args[1]).getOrders();
-                        aux::displayOrders(orders);
+                        try
+                        {
+                            std::lock_guard<std::mutex> lockGuard(_outMutex);
+                            auto orders = players.at(args[1]).getOrders();
+                            aux::displayOrders(orders);
+                        }
+                        catch (...)
+                        {
+                            std::lock_guard<std::mutex> lockGuard(_outMutex);
+                            std::cout << "Bad command. Correct usage is:\n";
+                            std::cout << "orders_from <player_name>" << std::endl;
+                        }
+                        break;
                     }
-                    catch (...)
-                    {
-                        std::lock_guard<std::mutex> lockGuard(_outMutex);
-                        std::cout << "Bad command. Correct usage is:\n";
-                        std::cout << "orders_from <player_name>" << std::endl;
-                    }
-                    break;
-                }
 
                 case aux::CommandEnum::allBuyOrders:
-                {
-                    std::lock_guard<std::mutex> lockGuard(_outMutex);
-                    auto orders = orderManager->buyOrders();
-                    aux::displayOrders(orders);
-                    break;
-                }
+                    {
+                        std::lock_guard<std::mutex> lockGuard(_outMutex);
+                        auto orders = orderManager->buyOrders();
+                        aux::displayOrders(orders);
+                        break;
+                    }
 
                 case aux::CommandEnum::allSellOrders:
-                {
-                    std::lock_guard<std::mutex> lockGuard(_outMutex);
-                    auto orders = orderManager->sellOrders();
-                    aux::displayOrders(orders);
-                    break;
-                }
+                    {
+                        std::lock_guard<std::mutex> lockGuard(_outMutex);
+                        auto orders = orderManager->sellOrders();
+                        aux::displayOrders(orders);
+                        break;
+                    }
 
                 case aux::CommandEnum::position:
                     try
@@ -177,7 +176,6 @@ int main()
                         std::cout << "Bad command. Correct usage is:\n";
                         std::cout << "position <player_name>" << std::endl;
                     }
-
                     break;
 
                 case aux::CommandEnum::message:
@@ -200,11 +198,6 @@ int main()
                         break;
                     }
 
-                case aux::CommandEnum::none:
-                {
-                    break;
-                }
-
                 case aux::CommandEnum::quit:
                     {
                         stop = true;
@@ -217,6 +210,8 @@ int main()
             std::cout << "Unknown command " << args[0] << "\n";
         }
     }
+    orderManager->stopProcessing();
+    priceSource->stopPriceSimulation();
     return 0;
 }
 
