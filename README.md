@@ -2,7 +2,7 @@
 
 Text based game that simulates the mechanics of FX trading.
 
-- There is a task running in the background that generates bod-offer prices for FX pair USDCLP (with almost no additional configuration, any FX pair could be simulated).
+- There is a task running in the background that generates bid-offer prices for FX pair USDCLP (with almost no additional configuration, any FX pair could be simulated).
 - There is an additional task in the background that manages buy and sell orders from the different players.
 - Any player can issue a buy or sell order for a certain amount of USD at a certain price. For example, player A wants to BUY 1 MM USD at a price of 700.00 CLP/USD.
 - In the previous example, if the ask price reaches a level greater than or equal to 700.00 the order will be fulfilled and player A's position will reflect the new trade.
