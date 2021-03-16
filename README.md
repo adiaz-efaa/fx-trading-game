@@ -14,7 +14,7 @@ Text based game that simulates the mechanics of FX trading.
 
 Clone the repo: `git clone https://github.com/adiaz-efaa/fx-trading-game.git`
 
-Once cloned, cd into the directory: `cd fx-trading-game`
+Once cloned, cd into the directory where the project has been cloned in the reviewers' machine, it could be `adiaz-efaa-fx-trading-game`.
 
 Create a build directory: `mkdir build`
 
@@ -23,6 +23,8 @@ Cd into the build directory: `cd build`
 Run CMAKE: `cmake ..`
 
 RUN MAKE to compile: `make`
+
+**NB:** the program does not compile on Ubuntu 16.04. **It requieres the compiler in Ubuntu 18.04**. It also runs on Mac OS 11.2.3.
 
 ## Running
 
